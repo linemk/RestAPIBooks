@@ -16,6 +16,12 @@ func main() {
 	r.Post("/books", pkg.BooksHandlerPost)
 
 	r.Get("/books/{id}", pkg.GetBooksId)
+	r.Put("/books/{id}", pkg.PutBooksId)
+	r.Delete("/books/{id}", pkg.DeleteBooksId)
+
+	r.Get("/authors/{id}", pkg.GetAuthorById)
+	r.Put("/authors/{id}", pkg.PutAuthorById)
+	r.Delete("/authors/{id}", pkg.DeleteAuthorById)
 
 	err := http.ListenAndServe(":8080", r)
 	if err != nil {

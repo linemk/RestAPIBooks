@@ -125,3 +125,87 @@ func SelectOneBooks(id string) (string, error) {
 
 	return book.Title, nil
 }
+
+func SelectOneAuthor(id string) (Author, error) {
+	db, err := sql.Open("sqlite", "sqldata/books.db")
+	if err != nil {
+		return Author{}, fmt.Errorf("Cannot open db: %v", err)
+	}
+	defer db.Close()
+	var author Author
+
+	idForRow, err := strconv.Atoi(id)
+	if err != nil {
+		return Author{}, fmt.Errorf("Cannot convert to int: %v", err)
+	}
+	row := db.QueryRow("SELECT * FROM author WHERE id= :id", sql.Named("id", idForRow))
+	err = row.Scan(&author.Id, &author.Name, &author.BirthYear)
+	if err != nil {
+		return Author{}, fmt.Errorf("Cannot scan row: %v", err)
+	}
+
+	return author, nil
+}
+
+func UpdateBookById(id string, book Book) error {
+	db, err := sql.Open("sqlite", "sqldata/books.db")
+	if err != nil {
+		return fmt.Errorf("Cannot open db: %v", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("UPDATE book SET title = :title, author_id = :author_id, published_date = :published_date WHERE id= :id",
+		sql.Named("title", book.Title),
+		sql.Named("author_id", book.AuthorId),
+		sql.Named("published_date", book.PublishedDate),
+		sql.Named("id", id))
+	if err != nil {
+		return fmt.Errorf("Cannot execute query: %v", err)
+	}
+	return nil
+}
+
+func DeleteByBookId(id string) error {
+	db, err := sql.Open("sqlite", "sqldata/books.db")
+	if err != nil {
+		return fmt.Errorf("Cannot open db: %v", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DELETE FROM book WHERE id= :id", sql.Named("id", id))
+	if err != nil {
+		return fmt.Errorf("Cannot execute query: %v", err)
+	}
+	return nil
+}
+
+func UpdateAuthorById(id string, author Author) error {
+	db, err := sql.Open("sqlite", "sqldata/books.db")
+	if err != nil {
+		return fmt.Errorf("Cannot open db: %v", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("UPDATE author SET fio = :fio, birth_date = :birth_date WHERE id= :id",
+		sql.Named("fio", author.Name),
+		sql.Named("birth_date", author.BirthYear),
+		sql.Named("id", id))
+	if err != nil {
+		return fmt.Errorf("Cannot execute query: %v", err)
+	}
+	return nil
+}
+
+func DeleteByAuthorId(id string) error {
+	db, err := sql.Open("sqlite", "sqldata/books.db")
+	if err != nil {
+		return fmt.Errorf("Cannot open db: %v", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DELETE FROM author WHERE id= :id", sql.Named("id", id))
+	if err != nil {
+		return fmt.Errorf("Cannot execute query: %v", err)
+	}
+	return nil
+}
