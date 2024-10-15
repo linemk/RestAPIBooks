@@ -56,7 +56,7 @@ func PostAuthors(authors []Author) error {
 	return nil
 }
 
-// выбор всех книш
+// выбор всех книг
 func SelectAllBooks(query string) ([]Book, error) {
 	db, err := sql.Open("sqlite", "sqldata/books.db")
 	if err != nil {
@@ -104,7 +104,7 @@ func PostBooks(newBook []Book) error {
 	return nil
 }
 
-// выбор всех книш
+// выбор одной книги
 func SelectOneBooks(id string) (string, error) {
 	db, err := sql.Open("sqlite", "sqldata/books.db")
 	if err != nil {
