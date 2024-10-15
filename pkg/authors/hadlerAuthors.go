@@ -1,4 +1,4 @@
-package pkg
+package authors
 
 import (
 	"bytes"
@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
+	"tz2/pkg"
 )
 
 // получение списка всех авторов
 func AuthorHandlerGet(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT * FROM author"
-	authors, err := SelectAllAuthors(query)
+	authors, err := pkg.SelectAllAuthors(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -29,7 +30,7 @@ func AuthorHandlerGet(w http.ResponseWriter, r *http.Request) {
 
 // добавление автора
 func AuthorsHandlerPost(w http.ResponseWriter, r *http.Request) {
-	var NewAuthor []Author
+	var NewAuthor []pkg.Author
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -43,7 +44,7 @@ func AuthorsHandlerPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = PostAuthors(NewAuthor)
+	err = pkg.PostAuthors(NewAuthor)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -51,28 +52,12 @@ func AuthorsHandlerPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// получение автора по id
 func GetAuthorById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	author, err := SelectOneAuthor(id)
+	author, err := pkg.SelectOneAuthor(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	authors, err := SelectAllAuthors("SELECT * FROM author")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var maxAuthorsId int
-	for _, v := range authors {
-		if v.Id > maxAuthorsId {
-			maxAuthorsId = v.Id
-		}
-	}
-	if author.Id > maxAuthorsId {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
@@ -81,9 +66,10 @@ func GetAuthorById(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(fmt.Sprintf("%v\n%v", author.Name, author.BirthYear)))
 }
 
+// обновление автора по id
 func PutAuthorById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var author Author
+	var author pkg.Author
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -95,7 +81,8 @@ func PutAuthorById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = UpdateAuthorById(id, author)
+
+	err = pkg.UpdateAuthorById(id, author)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -103,10 +90,11 @@ func PutAuthorById(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// удаление автора по id
 func DeleteAuthorById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	err := DeleteByAuthorId(id)
+	err := pkg.DeleteByAuthorId(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,17 +1,19 @@
-package pkg
+package books
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"net/http"
+	"strconv"
+	"tz2/pkg"
+	"tz2/pkg/authors"
 )
 
 // запрос на поиск книг
 func BooksHandlerGet(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT * FROM book"
-	books, err := SelectAllBooks(query)
+	books, err := pkg.SelectAllBooks(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -34,7 +36,7 @@ func BooksHandlerGet(w http.ResponseWriter, r *http.Request) {
 
 // запрос на добавление книги
 func BooksHandlerPost(w http.ResponseWriter, r *http.Request) {
-	var NewBook []Book
+	var NewBook []pkg.Book
 	var buf bytes.Buffer
 
 	_, err := buf.ReadFrom(r.Body)
@@ -47,29 +49,15 @@ func BooksHandlerPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	authors, err := SelectAllAuthors("SELECT * FROM author")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// проверка на id автора
-	var MaxAuthorId int
-	for _, author := range authors {
-		if author.Id > MaxAuthorId {
-			MaxAuthorId = author.Id
-		}
-	}
-
+	// проверка на id
 	for _, book := range NewBook {
-		if book.AuthorId > MaxAuthorId {
-			http.Error(w, fmt.Sprintf("Wrong author"), http.StatusInternalServerError)
+		err = authors.SelectAuthorMaxId(strconv.Itoa(book.AuthorId))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
-
-	err = PostBooks(NewBook)
+	err = pkg.PostBooks(NewBook)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -81,7 +69,7 @@ func BooksHandlerPost(w http.ResponseWriter, r *http.Request) {
 func GetBooksId(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	book, err := SelectOneBooks(id)
+	book, err := pkg.SelectOneBooks(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -91,10 +79,11 @@ func GetBooksId(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(book))
 }
 
+// обновляем по id
 func PutBooksId(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var book Book
+	var book pkg.Book
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -106,7 +95,13 @@ func PutBooksId(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = UpdateBookById(id, book)
+
+	err = authors.SelectAuthorMaxId(strconv.Itoa(book.AuthorId))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = pkg.UpdateBookById(id, book)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -117,7 +112,7 @@ func PutBooksId(w http.ResponseWriter, r *http.Request) {
 func DeleteBooksId(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	err := DeleteByBookId(id)
+	err := pkg.DeleteByBookId(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
