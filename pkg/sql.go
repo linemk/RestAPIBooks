@@ -3,17 +3,24 @@ package pkg
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 
 	_ "modernc.org/sqlite"
 )
 
-// возвращаем всех авторов
-func SelectAllAuthors(query string) ([]Author, error) {
+func DataBaseGet() *sql.DB {
 	db, err := sql.Open("sqlite", "sqldata/books.db")
 	if err != nil {
-		return []Author{}, fmt.Errorf("Cannot open db: %v", err)
+		log.Fatal(err)
 	}
+
+	return db
+}
+
+// возвращаем всех авторов
+func SelectAllAuthors(query string) ([]Author, error) {
+	db := DataBaseGet()
 	defer db.Close()
 
 	rows, err := db.Query(query)
@@ -40,10 +47,7 @@ func SelectAllAuthors(query string) ([]Author, error) {
 
 // публикуем автора
 func PostAuthors(authors []Author) error {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
 	for _, author := range authors {
@@ -58,10 +62,7 @@ func PostAuthors(authors []Author) error {
 
 // выбор всех книг
 func SelectAllBooks(query string) ([]Book, error) {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return []Book{}, fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
 	rows, err := db.Query(query)
@@ -88,10 +89,7 @@ func SelectAllBooks(query string) ([]Book, error) {
 
 // вставка книг
 func PostBooks(newBook []Book) error {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
 	for _, book := range newBook {
@@ -106,11 +104,9 @@ func PostBooks(newBook []Book) error {
 
 // выбор одной книги
 func SelectOneBooks(id string) (string, error) {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return "", fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
+
 	idForRow, err := strconv.Atoi(id)
 	if err != nil {
 		return "", fmt.Errorf("Cannot convert to int: %v", err)
@@ -127,11 +123,9 @@ func SelectOneBooks(id string) (string, error) {
 }
 
 func SelectOneAuthor(id string) (Author, error) {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return Author{}, fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
+
 	var author Author
 
 	idForRow, err := strconv.Atoi(id)
@@ -148,13 +142,10 @@ func SelectOneAuthor(id string) (Author, error) {
 }
 
 func UpdateBookById(id string, book Book) error {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
-	_, err = db.Exec("UPDATE book SET title = :title, author_id = :author_id, published_date = :published_date WHERE id= :id",
+	_, err := db.Exec("UPDATE book SET title = :title, author_id = :author_id, published_date = :published_date WHERE id= :id",
 		sql.Named("title", book.Title),
 		sql.Named("author_id", book.AuthorId),
 		sql.Named("published_date", book.PublishedDate),
@@ -166,13 +157,10 @@ func UpdateBookById(id string, book Book) error {
 }
 
 func DeleteByBookId(id string) error {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
-	_, err = db.Exec("DELETE FROM book WHERE id= :id", sql.Named("id", id))
+	_, err := db.Exec("DELETE FROM book WHERE id= :id", sql.Named("id", id))
 	if err != nil {
 		return fmt.Errorf("Cannot execute query: %v", err)
 	}
@@ -180,13 +168,10 @@ func DeleteByBookId(id string) error {
 }
 
 func UpdateAuthorById(id string, author Author) error {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
-	_, err = db.Exec("UPDATE author SET fio = :fio, birth_date = :birth_date WHERE id= :id",
+	_, err := db.Exec("UPDATE author SET fio = :fio, birth_date = :birth_date WHERE id= :id",
 		sql.Named("fio", author.Name),
 		sql.Named("birth_date", author.BirthYear),
 		sql.Named("id", id))
@@ -197,13 +182,10 @@ func UpdateAuthorById(id string, author Author) error {
 }
 
 func DeleteByAuthorId(id string) error {
-	db, err := sql.Open("sqlite", "sqldata/books.db")
-	if err != nil {
-		return fmt.Errorf("Cannot open db: %v", err)
-	}
+	db := DataBaseGet()
 	defer db.Close()
 
-	_, err = db.Exec("DELETE FROM author WHERE id= :id", sql.Named("id", id))
+	_, err := db.Exec("DELETE FROM author WHERE id= :id", sql.Named("id", id))
 	if err != nil {
 		return fmt.Errorf("Cannot execute query: %v", err)
 	}

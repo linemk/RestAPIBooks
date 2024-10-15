@@ -1,11 +1,13 @@
 package main
 
 import (
-	"github.com/go-chi/chi"
 	"log"
 	"net/http"
 	"tz2/pkg/authors"
 	"tz2/pkg/books"
+
+	"github.com/go-chi/chi"
+	_ "modernc.org/sqlite"
 )
 
 func main() {
