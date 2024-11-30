@@ -4,12 +4,18 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	_ "modernc.org/sqlite"
 )
 
 func DataBaseGet() *sql.DB {
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		log.Fatal("Переменная окружения DB_PATH не установлена")
+	}
+
 	db, err := sql.Open("sqlite", "sqldata/books.db")
 	if err != nil {
 		log.Fatal(err)
